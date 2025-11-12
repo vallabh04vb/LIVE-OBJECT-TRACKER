@@ -15,7 +15,7 @@ infra/**/.terraform/
 
 # AWS / credentials
 .aws/
-
+./AmazonRootCA1.pem
 # Python
 .mypy_cache/
 .pytest_cache/
