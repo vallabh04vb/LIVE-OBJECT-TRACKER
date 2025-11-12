@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-consumer
+  namespace: video-pipeline
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-consumer
+  template:
+    metadata:
+      labels:
+        app: kafka-consumer
+    spec:
+      containers:
+        - name: consumer
+          image: 929405966763.dkr.ecr.ap-south-1.amazonaws.com/consumer-service:latest
+          imagePullPolicy: Always
+          env:
+            - name: KAFKA_BOOTSTRAP
+              valueFrom:
+                secretKeyRef:
+                  name: pipeline-secrets
+                  key: kafka_bootstrap
+            - name: KAFKA_TOPIC
+              value: video-ingest
+            - name: INFERENCE_URL
+              value: http://inference-service.video-pipeline.svc.cluster.local:8000
+            - name: S3_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: pipeline-secrets
+                  key: s3_bucket
+            - name: AWS_REGION
+              value: ap-south-1
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: pipeline-secrets
+                  key: aws_access_key_id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: pipeline-secrets
+                  key: aws_secret_access_key
+            - name: KAFKA_SECURITY_PROTOCOL
+              value: SSL
+            - name: KAFKA_CA_FILE
+              value: /etc/msk-certs/AmazonRootCA1.pem
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          volumeMounts:
+            - name: msk-ca
+              mountPath: /etc/msk-certs
+              readOnly: true
+      volumes:
+        - name: msk-ca
+          configMap:
+            name: msk-ca-cert

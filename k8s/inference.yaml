@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inference-service
+  namespace: video-pipeline
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: inference-service
+  template:
+    metadata:
+      labels:
+        app: inference-service
+    spec:
+      containers:
+        - name: inference
+          image: 929405966763.dkr.ecr.ap-south-1.amazonaws.com/inference-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: MODEL_URL
+              value: "https://github.com/ultralytics/yolov5/releases/download/v6.0/yolov5s.onnx"
+            - name: CONF_THRESHOLD
+              value: "0.2"
+            - name: IOU_THRESHOLD
+              value: "0.45"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "1500m"
+              memory: "2Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inference-service
+  namespace: video-pipeline
+spec:
+  selector:
+    app: inference-service
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000

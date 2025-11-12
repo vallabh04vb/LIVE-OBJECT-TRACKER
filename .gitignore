@@ -1,0 +1,31 @@
+# General
+.DS_Store
+*.pyc
+__pycache__/
+.venv/
+env/
+
+# Terraform local state
+terraform.tfstate
+terraform.tfstate.*
+*.tfstate.backup
+.terraform/
+infra/.terraform/
+infra/**/.terraform/
+
+# AWS / credentials
+.aws/
+
+# Python
+.mypy_cache/
+.pytest_cache/
+
+# VSCode / IDE
+.vscode/
+.idea/
+
+# Misc
+*.log
+*.tmp
+
+
